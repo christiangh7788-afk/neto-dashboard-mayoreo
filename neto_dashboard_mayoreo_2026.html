@@ -33,6 +33,29 @@ body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:#f0f4f8;
 .kpi.sur .value{color:#0e7a50;}
 .kpi.centro .value{color:#b06010;}
 
+/* ── EXPORT BUTTON ──────────────────────────── */
+/* ── REGION BUDGET INPUTS ───────────────────── */
+.reg-budgets{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+.reg-bgt-item{display:flex;align-items:center;gap:4px;}
+.reg-bgt-lbl{font-size:10px;font-weight:600;color:#4a6a8a;white-space:nowrap;}
+.reg-bgt-lbl.norte{color:#1a6ab0;}
+.reg-bgt-lbl.sur{color:#0e7a50;}
+.reg-bgt-lbl.centro{color:#b06010;}
+.reg-bgt-input{width:90px;font-size:10px;border:1px solid #b0c8dc;border-radius:5px;padding:3px 6px;color:#1a2a3a;background:#fff;font-weight:600;}
+.reg-bgt-input:focus{outline:none;border-color:#1a6ab0;}
+
+.export-btn{display:flex;align-items:center;gap:6px;border:1px solid #1a6ab0;background:#fff;color:#1a6ab0;border-radius:6px;padding:5px 12px;font-size:12px;cursor:pointer;font-weight:600;transition:all .2s;}
+.export-btn:hover{background:#1a6ab0;color:#fff;}
+.export-btn svg{width:14px;height:14px;fill:currentColor;}
+.export-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9999;align-items:center;justify-content:center;}
+.export-modal.show{display:flex;}
+.export-box{background:#fff;border-radius:12px;padding:24px;min-width:260px;box-shadow:0 8px 32px rgba(0,0,0,.2);}
+.export-box h3{font-size:14px;color:#1a2a3a;margin-bottom:16px;font-weight:700;}
+.export-opt{display:flex;gap:10px;margin-bottom:10px;}
+.export-opt button{flex:1;padding:10px;border-radius:8px;border:1.5px solid #b0c8dc;background:#f8fbff;color:#1a3a5c;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;}
+.export-opt button:hover{border-color:#1a6ab0;background:#e8f2ff;}
+.export-cancel{width:100%;padding:8px;border:none;background:none;color:#6a8aaa;font-size:12px;cursor:pointer;margin-top:4px;}
+
 /* ── NAV ─────────────────────────────────────── */
 .nav-row{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:14px;}
 .breadcrumb{display:flex;align-items:center;gap:6px;font-size:12px;color:#4a6a8a;}
@@ -121,6 +144,17 @@ body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:#f0f4f8;
 </style>
 </head>
 <body>
+<!-- Export Modal -->
+<div class="export-modal" id="exportModal">
+  <div class="export-box">
+    <h3>📥 Exportar vista actual</h3>
+    <div class="export-opt">
+      <button onclick="exportData('xlsx')">📊 Excel</button>
+      <button onclick="exportData('pdf')">📄 PDF</button>
+    </div>
+    <button class="export-cancel" onclick="closeExport()">Cancelar</button>
+  </div>
+</div>
 
 <div class="header">
   <div class="logo-box">NETO</div>
@@ -138,16 +172,43 @@ body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:#f0f4f8;
   <div class="nav-row">
     <div class="breadcrumb" id="bc"></div>
     <div style="display:flex;align-items:center;gap:8px;">
-      <button onclick="window._userTriggeredFetch=true;fetchTableauData(true).then(()=>{render();});" title="Actualizar datos desde Tableau"
+      <button onclick="openExport()"
+        style="border:1px solid #1a6ab0;background:#fff;border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer;color:#1a6ab0;font-weight:600;">
+        📥 Exportar
+      </button>
+      <button onclick="render()" title="Actualizar vista"
         style="border:1px solid #b0c8dc;background:#fff;border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer;color:#1a6ab0;font-weight:600;">
         🔄 Actualizar
       </button>
     </div>
-    <div style="display:flex;align-items:center;gap:8px;">
-      <span style="font-size:11px;color:#6a8aaa;font-weight:500;">Ppto. mensual:</span>
-      <input id="budgetInput" type="text" value="$40,000,000"
-        style="width:120px;font-size:11px;border:1px solid #b0c8dc;border-radius:6px;padding:4px 8px;color:#1a2a3a;background:#fff;font-weight:600;"
-        onchange="updateBudget(this.value)" onblur="updateBudget(this.value)"/>
+    <div style="display:flex;flex-direction:column;gap:5px;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:11px;color:#6a8aaa;font-weight:500;">Ppto. mensual:</span>
+        <input id="budgetInput" type="text" value="$40,000,000"
+          style="width:120px;font-size:11px;border:1px solid #b0c8dc;border-radius:6px;padding:4px 8px;color:#1a2a3a;background:#fff;font-weight:600;"
+          onchange="updateBudget(this.value)" onblur="updateBudget(this.value)"/>
+        <span style="font-size:10px;color:#aac0d0;">↓ ajusta por región:</span>
+      </div>
+      <div class="reg-budgets">
+        <div class="reg-bgt-item">
+          <span class="reg-bgt-lbl norte">Norte:</span>
+          <input class="reg-bgt-input" id="bgtNorte" type="text" value="$20,000,000"
+            onchange="updateRegBudget('VERACRUZ NORTE',this.value)"
+            onblur="updateRegBudget('VERACRUZ NORTE',this.value)"/>
+        </div>
+        <div class="reg-bgt-item">
+          <span class="reg-bgt-lbl sur">Sur:</span>
+          <input class="reg-bgt-input" id="bgtSur" type="text" value="$14,300,000"
+            onchange="updateRegBudget('VERACRUZ SUR',this.value)"
+            onblur="updateRegBudget('VERACRUZ SUR',this.value)"/>
+        </div>
+        <div class="reg-bgt-item">
+          <span class="reg-bgt-lbl centro">Centro:</span>
+          <input class="reg-bgt-input" id="bgtCentro" type="text" value="$5,700,000"
+            onchange="updateRegBudget('VERACRUZ CENTRO',this.value)"
+            onblur="updateRegBudget('VERACRUZ CENTRO',this.value)"/>
+        </div>
+      </div>
     </div>
     <div class="view-tabs">
       <button class="vtab act" id="tabM" onclick="setView('monthly')">Por mes</button>
@@ -219,18 +280,36 @@ const DATA_25 = {
 };
 
 // Semana actual y mes actual (Mayo = W19+W20 disponibles)
-const CURRENT_WEEK = 20;
-const CURRENT_MONTH_IDX = 4; // 0=ENE...4=MAY
-const CURRENT_MONTH_WEEKS = 3;
-// ── Días del mes calculados automáticamente ─────────────
+// ── Calendario Neto 2026 — semanas por mes ──────────────────
+const NETO_CALENDAR = [
+  {w:1,d:new Date(2026,0,5)},{w:2,d:new Date(2026,0,12)},{w:3,d:new Date(2026,0,19)},{w:4,d:new Date(2026,0,26)},
+  {w:5,d:new Date(2026,1,2)},{w:6,d:new Date(2026,1,9)},{w:7,d:new Date(2026,1,16)},{w:8,d:new Date(2026,1,23)},
+  {w:9,d:new Date(2026,2,2)},{w:10,d:new Date(2026,2,9)},{w:11,d:new Date(2026,2,16)},{w:12,d:new Date(2026,2,23)},{w:13,d:new Date(2026,2,30)},
+  {w:14,d:new Date(2026,3,6)},{w:15,d:new Date(2026,3,13)},{w:16,d:new Date(2026,3,20)},{w:17,d:new Date(2026,3,27)},
+  {w:18,d:new Date(2026,4,4)},{w:19,d:new Date(2026,4,11)},{w:20,d:new Date(2026,4,18)},{w:21,d:new Date(2026,4,25)},{w:22,d:new Date(2026,5,1)},
+  {w:23,d:new Date(2026,5,8)},{w:24,d:new Date(2026,5,15)},{w:25,d:new Date(2026,5,22)},{w:26,d:new Date(2026,5,29)},
+  {w:27,d:new Date(2026,6,6)},{w:28,d:new Date(2026,6,13)},{w:29,d:new Date(2026,6,20)},{w:30,d:new Date(2026,6,27)},{w:31,d:new Date(2026,7,3)},
+  {w:32,d:new Date(2026,7,10)},{w:33,d:new Date(2026,7,17)},{w:34,d:new Date(2026,7,24)},{w:35,d:new Date(2026,7,31)},
+  {w:36,d:new Date(2026,8,7)},{w:37,d:new Date(2026,8,14)},{w:38,d:new Date(2026,8,21)},{w:39,d:new Date(2026,8,28)},{w:40,d:new Date(2026,9,5)},
+  {w:41,d:new Date(2026,9,12)},{w:42,d:new Date(2026,9,19)},{w:43,d:new Date(2026,9,26)},{w:44,d:new Date(2026,10,2)},
+  {w:45,d:new Date(2026,10,9)},{w:46,d:new Date(2026,10,16)},{w:47,d:new Date(2026,10,23)},{w:48,d:new Date(2026,10,30)},
+  {w:49,d:new Date(2026,11,7)},{w:50,d:new Date(2026,11,14)},{w:51,d:new Date(2026,11,21)},{w:52,d:new Date(2026,11,28)},
+];
+const WEEK_TO_MONTH={1:0,2:0,3:0,4:0,5:1,6:1,7:1,8:1,9:2,10:2,11:2,12:2,13:2,14:3,15:3,16:3,17:3,18:4,19:4,20:4,21:4,22:4,23:5,24:5,25:5,26:5,27:6,28:6,29:6,30:6,31:6,32:7,33:7,34:7,35:7,36:8,37:8,38:8,39:8,40:8,41:9,42:9,43:9,44:9,45:10,46:10,47:10,48:10,49:11,50:11,51:11,52:11};
+const MONTH_FIRST_WEEK={0:1,1:5,2:9,3:14,4:18,5:23,6:27,7:32,8:36,9:41,10:45,11:49};
+// ── Calcular todo automáticamente según fecha de hoy ─────────
 (function(){
-  const now   = new Date();
-  const today = now.getDate();
-  // Días transcurridos con venta = ayer (el día de hoy aún no cierra)
-  window.CURRENT_MONTH_DAYS_ELAPSED = today > 1 ? today - 1 : 1;
-  // Días totales del mes actual
-  const lastDay = new Date(now.getFullYear(), now.getMonth()+1, 0).getDate();
-  window.CURRENT_MONTH_DAYS_TOTAL = lastDay;
+  const today=new Date(); today.setHours(0,0,0,0);
+  let cw=1;
+  for(let i=NETO_CALENDAR.length-1;i>=0;i--){if(today>=NETO_CALENDAR[i].d){cw=NETO_CALENDAR[i].w;break;}}
+  window.CURRENT_WEEK=cw;
+  window.CURRENT_MONTH_IDX=WEEK_TO_MONTH[cw]||4;
+  const firstW=MONTH_FIRST_WEEK[window.CURRENT_MONTH_IDX]||18;
+  window.CURRENT_MONTH_WEEKS=Math.max(1,cw-firstW+1);
+  const now2=new Date();
+  window.CURRENT_MONTH_DAYS_ELAPSED=now2.getDate()>1?now2.getDate()-1:1;
+  window.CURRENT_MONTH_DAYS_TOTAL=new Date(now2.getFullYear(),now2.getMonth()+1,0).getDate();
+  console.log('Neto W'+cw+' | Mes idx:'+window.CURRENT_MONTH_IDX+' | Sems:'+window.CURRENT_MONTH_WEEKS+' | Dias:'+window.CURRENT_MONTH_DAYS_ELAPSED+'/'+window.CURRENT_MONTH_DAYS_TOTAL);
 })();
 
 // ═══════════════════════════════════════════════
@@ -1396,7 +1475,36 @@ function updateBudget(val){
   });
   // Format input
   document.getElementById('budgetInput').value='$'+num.toLocaleString('es-MX');
+  // Sync region inputs
+  syncRegInputs();
   render();
+}
+
+function updateRegBudget(reg, val){
+  const num=parseInt(val.replace(/[^0-9]/g,''));
+  if(isNaN(num)||num<=0) return;
+  BUDGET.regions[reg]=num;
+  // Recalculate total as sum of all regions
+  const newTotal=Object.values(BUDGET.regions).reduce((s,v)=>s+v,0);
+  BUDGET.monthly=newTotal;
+  // Redistribute zones within this region by their participation
+  const regTotal=H[reg].mTotal;
+  Object.keys(BUDGET.zones).forEach(z=>{
+    if(!H[reg].zones[z]) return;
+    BUDGET.zones[z]=Math.round(num*(H[reg].zones[z].mTotal/regTotal));
+  });
+  // Format inputs
+  document.getElementById('budgetInput').value='$'+newTotal.toLocaleString('es-MX');
+  syncRegInputs();
+  render();
+}
+
+function syncRegInputs(){
+  const map={'VERACRUZ NORTE':'bgtNorte','VERACRUZ SUR':'bgtSur','VERACRUZ CENTRO':'bgtCentro'};
+  Object.entries(map).forEach(([r,id])=>{
+    const el=document.getElementById(id);
+    if(el && BUDGET.regions[r]) el.value='$'+BUDGET.regions[r].toLocaleString('es-MX');
+  });
 }
 function goR(){ST={level:'region',region:null,zone:null,view:ST.view};render();}
 function goZ(){ST={level:'zone',region:ST.region,zone:null,view:ST.view};render();}
@@ -1412,166 +1520,106 @@ function setView(v){ST.view=v;render();}
 // ═══════════════════════════════════════════════════════════
 
 // URL del Apps Script desplegado como Web App (llenar después de desplegar)
-const PROXY_URL = 'https://script.google.com/macros/s/TU_DEPLOYMENT_ID/exec';
 
-// Semana actual — se actualiza automáticamente
-const CURRENT_WEEK_NUM = getCurrentWeekNum();
+// ═══════════════════════════════════════════════
+// EXPORTAR DATOS
+// ═══════════════════════════════════════════════
+function openExport(){ document.getElementById('exportModal').classList.add('show'); }
+function closeExport(){ document.getElementById('exportModal').classList.remove('show'); }
 
-function getCurrentWeekNum() {
-  // Calcula la semana fiscal Neto (W1 = primera semana de enero)
-  const now = new Date();
-  const start = new Date(now.getFullYear(), 0, 1);
-  return Math.ceil(((now - start) / 86400000 + start.getDay() + 1) / 7);
-}
+function exportData(type) {
+  closeExport();
+  const level = ST.level;
+  const reg   = ST.region;
+  const zone  = ST.zone;
+  const view  = ST.view;
 
-// ── Estado de carga ─────────────────────────────────────────
-let TABLEAU_DATA = null;
-let LOADING = false;
-let LAST_FETCH = null;
-const CACHE_MINUTES = 30; // no volver a pedir por 30 min
+  // Obtener título y datos según vista actual
+  let title = 'Neto Mayoreo 2026';
+  let rows  = [];
+  const MONTH_NAMES_EXP = ['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'];
+  const curMo = MONTH_NAMES_EXP[CURRENT_MONTH_IDX];
 
-// ── Cargar datos desde el proxy ─────────────────────────────
-async function fetchTableauData(forceRefresh = false) {
-  // Usar caché si los datos son recientes
-  if (!forceRefresh && TABLEAU_DATA && LAST_FETCH) {
-    const mins = (Date.now() - LAST_FETCH) / 60000;
-    if (mins < CACHE_MINUTES) return TABLEAU_DATA;
-  }
-  
-  LOADING = true;
-  showLoadingBanner('Conectando con Tableau...');
-  
-  try {
-    const url = `${PROXY_URL}?action=data`;
-    const resp = await fetch(url);
-    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-    const json = await resp.json();
-    
-    if (json.error) throw new Error(json.error);
-    
-    TABLEAU_DATA = json.data;
-    LAST_FETCH = Date.now();
-    
-    // Actualizar datos en la jerarquía H[]
-    applyTableauDataToH(TABLEAU_DATA);
-    
-    hideLoadingBanner();
-    showSuccessBanner(`✓ Datos actualizados desde Tableau — ${new Date().toLocaleTimeString('es-MX')}`);
-    return TABLEAU_DATA;
-    
-  } catch(err) {
-    hideLoadingBanner();
-    showErrorBanner(`⚠ No se pudo conectar con Tableau: ${err.message}. Mostrando datos estáticos.`);
-    console.error('Tableau fetch error:', err);
-    return null;
-  } finally {
-    LOADING = false;
-  }
-}
-
-// ── Aplicar datos de Tableau a la jerarquía H ───────────────
-function applyTableauDataToH(data) {
-  if (!data || !data.stores) return;
-  
-  // Actualizar W19 y W20 (semanas más recientes) en cada tienda
-  data.stores.forEach(tRow => {
-    const reg  = tRow.region;
-    const zona = tRow.zona;
-    const name = tRow.tienda;
-    
-    if (!H[reg] || !H[reg].zones[zona]) return;
-    const store = H[reg].zones[zona].stores.find(s => 
-      s.name.toLowerCase().trim() === name.toLowerCase().trim()
-    );
-    if (!store) return;
-    
-    // Actualizar semanas disponibles en weekly[]
-    // W18=idx17, W19=idx18, W20=idx19
-    const weekMap = { 'W18': 17, 'W19': 18, 'W20': 19 };
-    let mayTotal = 0;
-    
-    Object.entries(tRow.weeks).forEach(([w, v]) => {
-      const idx = weekMap[w];
-      if (idx !== undefined) {
-        store.weekly[idx] = Math.round(v);
-        mayTotal += Math.round(v);
-      }
+  if (level === 'region') {
+    title = 'Resumen Regiones — ' + curMo;
+    rows.push(['Region','Acum. Año','Mayo Real','Ppto. Mayo','Cumpl. %','Est. Cierre']);
+    REG_ORDER.forEach(r => {
+      const vMo  = H[r].mT[CURRENT_MONTH_IDX];
+      const rBgt = BUDGET.regions[r] || 0;
+      const pct  = rBgt > 0 ? Math.round(vMo/rBgt*100) : 0;
+      const est  = CURRENT_MONTH_DAYS_ELAPSED > 0 ? Math.round((vMo/CURRENT_MONTH_DAYS_ELAPSED)*CURRENT_MONTH_DAYS_TOTAL) : 0;
+      rows.push([RL[r], H[r].mTotal, vMo, rBgt, pct+'%', est]);
     });
-    
-    // Actualizar MAY en monthly y total
-    const oldMay    = store.monthly[4];
-    const delta     = mayTotal - oldMay;
-    store.monthly[4] = mayTotal;
-    store.total     += delta;
-    
-    // Actualizar zona y región
-    H[reg].zones[zona].mT[4]   += delta;
-    H[reg].zones[zona].mTotal  += delta;
-    H[reg].mT[4]               += delta;
-    H[reg].mTotal              += delta;
-  });
-  
-  // Actualizar presupuesto con nuevo grand total
-  const newGrand = Object.values(H).reduce((s,r) => s + r.mTotal, 0);
-  BUDGET.grand = newGrand;
-  updateBudget(BUDGET.monthly);
-}
-
-// ── Banners de estado ───────────────────────────────────────
-function showLoadingBanner(msg) {
-  let b = document.getElementById('tableau-banner');
-  if (!b) {
-    b = document.createElement('div');
-    b.id = 'tableau-banner';
-    b.style.cssText = 'position:fixed;bottom:16px;right:16px;padding:8px 16px;border-radius:8px;font-size:12px;font-weight:500;z-index:9999;box-shadow:0 2px 8px rgba(0,0,0,.15);transition:all .3s';
-    document.body.appendChild(b);
+  } else if (level === 'zone' && reg) {
+    title = (RL[reg]||reg) + ' — Zonas — ' + curMo;
+    rows.push(['Zona','Tiendas','Mayo Real','Ppto. Mayo','Cumpl. %']);
+    Object.entries(H[reg].zones).sort((a,b)=>b[1].mT[CURRENT_MONTH_IDX]-a[1].mT[CURRENT_MONTH_IDX]).forEach(([z,d])=>{
+      const vMo  = d.mT[CURRENT_MONTH_IDX];
+      const zBgt = BUDGET.zones[z] || 0;
+      const pct  = zBgt > 0 ? Math.round(vMo/zBgt*100) : 0;
+      rows.push([cap(z), d.stores.length, vMo, zBgt, pct+'%']);
+    });
+  } else if (level === 'store' && reg && zone) {
+    title = cap(zone) + ' — Tiendas — ' + curMo;
+    rows.push(['Tienda','Acum. Año','Mayo Real','Ppto. Sem.','Proy. Sem.','Est. Mes','W20']);
+    const stores = H[reg].zones[zone].stores.sort((a,b)=>b.mT[CURRENT_MONTH_IDX]-a.mT[CURRENT_MONTH_IDX]);
+    stores.forEach(s => {
+      const vMo  = s.monthly[CURRENT_MONTH_IDX];
+      const sBgt = storeBudget(s.total);
+      const sSem = Math.round(sBgt/4.33);
+      const proy = avgW(s.weekly);
+      const est  = Math.round(proy*4.33);
+      const w20  = s.weekly[19]||0;
+      rows.push([s.name, s.total, vMo, sSem, proy, est, w20]);
+    });
   }
-  b.style.background = '#1a3a5c';
-  b.style.color = '#fff';
-  b.textContent = msg;
-  b.style.display = 'block';
+
+  if (type === 'xlsx') exportXLSX(title, rows);
+  else exportPDF(title, rows);
 }
 
-function showSuccessBanner(msg) {
-  const b = document.getElementById('tableau-banner');
-  if (!b) return;
-  b.style.background = '#f0faf5';
-  b.style.color = '#0e7a50';
-  b.style.border = '1px solid #a7d7bf';
-  b.textContent = msg;
-  setTimeout(() => { if(b) b.style.display='none'; }, 4000);
+function exportXLSX(title, rows) {
+  // Crear CSV y descargar como .xlsx compatible
+  const csv = rows.map(r => r.map(c => '"'+String(c).replace(/"/g,'""')+'"').join(',')).join('
+');
+  const BOM  = '﻿';
+  const blob = new Blob([BOM+csv], {type:'text/csv;charset=utf-8;'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = title.replace(/[^a-zA-Z0-9]/g,'_')+'.csv';
+  a.click(); URL.revokeObjectURL(url);
 }
 
-function showErrorBanner(msg) {
-  // Solo mostrar si fue por acción del usuario (botón Actualizar)
-  if (!window._userTriggeredFetch) return;
-  const b = document.getElementById('tableau-banner');
-  if (!b) return;
-  b.style.background = '#fef2f2';
-  b.style.color = '#c0392b';
-  b.style.border = '1px solid #f5c6c6';
-  b.textContent = msg;
-  setTimeout(()=>{if(b)b.style.display='none';}, 5000);
+function exportPDF(title, rows) {
+  const win = window.open('','_blank');
+  const cols = rows[0] ? rows[0].length : 5;
+  const colW = Math.floor(100/cols);
+  const trs  = rows.map((r,i) => {
+    const tag = i===0?'th':'td';
+    const bg  = i===0?'#1a3a5c':i%2===0?'#f0f4f8':'#fff';
+    const col = i===0?'#fff':'#1a2a3a';
+    return '<tr>' + r.map(c=>`<${tag} style="background:${bg};color:${col};padding:6px 8px;border:1px solid #dce8f0;font-size:11px">${c}</${tag}>`).join('') + '</tr>';
+  }).join('');
+  win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8">
+    <title>${title}</title>
+    <style>body{font-family:Arial,sans-serif;margin:24px}h2{color:#1a3a5c;margin-bottom:16px;font-size:16px}table{width:100%;border-collapse:collapse}@media print{body{margin:0}}</style>
+    </head><body>
+    <h2>🟠 NETO — ${title}</h2>
+    <p style="font-size:10px;color:#6a8aaa;margin-bottom:12px">Generado: ${new Date().toLocaleString('es-MX')}</p>
+    <table>${trs}</table>
+    <script>window.onload=()=>{window.print();}<\/script>
+    </body></html>`);
+  win.document.close();
 }
-
-function hideLoadingBanner() {
-  const b = document.getElementById('tableau-banner');
-  if (b) b.style.display = 'none';
-}
-
-// ── Auto-refresh cada 30 min ────────────────────────────────
-function startAutoRefresh() {
-  fetchTableauData(); // carga inicial
-  setInterval(() => {
-    fetchTableauData();
-    render();
-  }, CACHE_MINUTES * 60 * 1000);
-}
-
 
 // Dashboard con datos estáticos
 // Para conectar con Tableau activa la VPN y presiona el botón Actualizar
-render();
+try {
+  render();
+} catch(e) {
+  console.error('Error en render():', e);
+  document.getElementById('content').innerHTML = '<p style="color:red;padding:20px">Error al cargar: ' + e.message + '</p>';
+}
 </script>
 </body>
 </html>
