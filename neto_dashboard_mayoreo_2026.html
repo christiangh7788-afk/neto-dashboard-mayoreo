@@ -1592,24 +1592,23 @@ function exportXLSX(title, rows) {
 
 function exportPDF(title, rows) {
   const win = window.open('','_blank');
-  const cols = rows[0] ? rows[0].length : 5;
-  const colW = Math.floor(100/cols);
-  const trs  = rows.map((r,i) => {
+  const trs = rows.map((r,i) => {
     const tag = i===0?'th':'td';
     const bg  = i===0?'#1a3a5c':i%2===0?'#f0f4f8':'#fff';
     const col = i===0?'#fff':'#1a2a3a';
-    return '<tr>' + r.map(c=>`<${tag} style="background:${bg};color:${col};padding:6px 8px;border:1px solid #dce8f0;font-size:11px">${c}</${tag}>`).join('') + '</tr>';
+    return '<tr>' + r.map(c=>'<'+tag+' style="background:'+bg+';color:'+col+';padding:6px 8px;border:1px solid #dce8f0;font-size:11px">'+c+'</'+tag+'>').join('') + '</tr>';
   }).join('');
-  win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8">
-    <title>${title}</title>
-    <style>body{font-family:Arial,sans-serif;margin:24px}h2{color:#1a3a5c;margin-bottom:16px;font-size:16px}table{width:100%;border-collapse:collapse}@media print{body{margin:0}}</style>
-    </head><body>
-    <h2>🟠 NETO — ${title}</h2>
-    <p style="font-size:10px;color:#6a8aaa;margin-bottom:12px">Generado: ${new Date().toLocaleString('es-MX')}</p>
-    <table>${trs}</table>
-    <script>window.onload=()=>{window.print();}<\/script>
-    </body></html>`);
+  const fecha = new Date().toLocaleString('es-MX');
+  const html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>'+title+'</title>'
+    + '<style>body{font-family:Arial,sans-serif;margin:24px}h2{color:#1a3a5c;margin-bottom:16px}table{width:100%;border-collapse:collapse}@media print{body{margin:0}}</style>'
+    + '</head><body>'
+    + '<h2>NETO — '+title+'</h2>'
+    + '<p style="font-size:10px;color:#6a8aaa;margin-bottom:12px">Generado: '+fecha+'</p>'
+    + '<table>'+trs+'</table>'
+    + '</body></html>';
+  win.document.write(html);
   win.document.close();
+  setTimeout(()=>win.print(), 500);
 }
 
 // Dashboard con datos estáticos
