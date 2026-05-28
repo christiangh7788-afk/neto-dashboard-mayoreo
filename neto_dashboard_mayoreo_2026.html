@@ -1466,17 +1466,15 @@ function updateBudget(val){
   const num=parseInt(val.replace(/[^0-9]/g,''));
   if(isNaN(num)||num<=0) return;
   BUDGET.monthly=num;
-  // Redistribute by participation
   Object.keys(BUDGET.regions).forEach(r=>{BUDGET.regions[r]=Math.round(num*(H[r].mTotal/BUDGET.grand));});
   Object.keys(BUDGET.zones).forEach(z=>{
     let zTotal=0;
     Object.values(H).forEach(rd=>{if(rd.zones[z])zTotal+=rd.zones[z].mTotal;});
     BUDGET.zones[z]=Math.round(num*(zTotal/BUDGET.grand));
   });
-  // Format input
   document.getElementById('budgetInput').value='$'+num.toLocaleString('es-MX');
-  // Sync region inputs
   syncRegInputs();
+  saveBudgets();
   render();
 }
 
@@ -1484,7 +1482,6 @@ function updateRegBudget(reg, val){
   const num=parseInt(val.replace(/[^0-9]/g,''));
   if(isNaN(num)||num<=0) return;
   BUDGET.regions[reg]=num;
-  // Recalculate total as sum of all regions
   const newTotal=Object.values(BUDGET.regions).reduce((s,v)=>s+v,0);
   BUDGET.monthly=newTotal;
   // Redistribute zones within this region by their participation
@@ -1496,6 +1493,7 @@ function updateRegBudget(reg, val){
   // Format inputs
   document.getElementById('budgetInput').value='$'+newTotal.toLocaleString('es-MX');
   syncRegInputs();
+  saveBudgets();
   render();
 }
 
@@ -1505,6 +1503,43 @@ function syncRegInputs(){
     const el=document.getElementById(id);
     if(el && BUDGET.regions[r]) el.value='$'+BUDGET.regions[r].toLocaleString('es-MX');
   });
+}
+
+function saveBudgets(){
+  try {
+    const data = {
+      monthly: BUDGET.monthly,
+      norte:   BUDGET.regions['VERACRUZ NORTE'],
+      sur:     BUDGET.regions['VERACRUZ SUR'],
+      centro:  BUDGET.regions['VERACRUZ CENTRO'],
+    };
+    localStorage.setItem('neto_budgets', JSON.stringify(data));
+  } catch(e) {}
+}
+
+function loadBudgets(){
+  try {
+    const saved = localStorage.getItem('neto_budgets');
+    if (!saved) return;
+    const data = JSON.parse(saved);
+    if (data.monthly) {
+      BUDGET.monthly = data.monthly;
+      if (data.norte)  BUDGET.regions['VERACRUZ NORTE'] = data.norte;
+      if (data.sur)    BUDGET.regions['VERACRUZ SUR']   = data.sur;
+      if (data.centro) BUDGET.regions['VERACRUZ CENTRO']= data.centro;
+      // Redistribuir zonas con los nuevos valores regionales
+      Object.keys(BUDGET.regions).forEach(r=>{
+        const regTotal = H[r] ? H[r].mTotal : 0;
+        if (!regTotal) return;
+        Object.keys(BUDGET.zones).forEach(z=>{
+          if(!H[r] || !H[r].zones[z]) return;
+          BUDGET.zones[z]=Math.round(BUDGET.regions[r]*(H[r].zones[z].mTotal/regTotal));
+        });
+      });
+      document.getElementById('budgetInput').value='$'+data.monthly.toLocaleString('es-MX');
+      syncRegInputs();
+    }
+  } catch(e) {}
 }
 function goR(){ST={level:'region',region:null,zone:null,view:ST.view};render();}
 function goZ(){ST={level:'zone',region:ST.region,zone:null,view:ST.view};render();}
@@ -1615,6 +1650,7 @@ function exportPDF(title, rows) {
 // Dashboard con datos estáticos
 // Para conectar con Tableau activa la VPN y presiona el botón Actualizar
 try {
+  loadBudgets();
   render();
 } catch(e) {
   console.error('Error en render():', e);
