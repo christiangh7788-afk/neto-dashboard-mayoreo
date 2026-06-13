@@ -302,8 +302,9 @@ const MONTH_FIRST_WEEK={0:1,1:5,2:9,3:14,4:18,5:23,6:27,7:32,8:36,9:41,10:45,11:
   const today=new Date(); today.setHours(0,0,0,0);
   let cw=1;
   for(let i=NETO_CALENDAR.length-1;i>=0;i--){if(today>=NETO_CALENDAR[i].d){cw=NETO_CALENDAR[i].w;break;}}
+  if(cw>20)cw=20; // ← TOPE: no hay datos despues de W20 (mayo). Sube este numero cuando cargues mas meses.
   window.CURRENT_WEEK=cw;
-  window.CURRENT_MONTH_IDX=WEEK_TO_MONTH[cw]||4;
+  window.CURRENT_MONTH_IDX=Math.min(WEEK_TO_MONTH[cw]||4,4);
   const firstW=MONTH_FIRST_WEEK[window.CURRENT_MONTH_IDX]||18;
   window.CURRENT_MONTH_WEEKS=Math.max(1,cw-firstW+1);
   const now2=new Date();
