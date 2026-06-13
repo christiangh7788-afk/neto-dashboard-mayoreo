@@ -184,7 +184,7 @@ body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:#f0f4f8;
     <div style="display:flex;flex-direction:column;gap:5px;">
       <div style="display:flex;align-items:center;gap:8px;">
         <span style="font-size:11px;color:#6a8aaa;font-weight:500;">Ppto. mensual:</span>
-        <input id="budgetInput" type="text" value="$40,000,000"
+        <input id="budgetInput" type="text" value="$50,000,000"
           style="width:120px;font-size:11px;border:1px solid #b0c8dc;border-radius:6px;padding:4px 8px;color:#1a2a3a;background:#fff;font-weight:600;"
           onchange="updateBudget(this.value)" onblur="updateBudget(this.value)"/>
         <span style="font-size:10px;color:#aac0d0;">↓ ajusta por región:</span>
@@ -192,19 +192,19 @@ body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:#f0f4f8;
       <div class="reg-budgets">
         <div class="reg-bgt-item">
           <span class="reg-bgt-lbl norte">Norte:</span>
-          <input class="reg-bgt-input" id="bgtNorte" class="reg-bgt-input" type="text" value="$18,000,000"
+          <input class="reg-bgt-input" id="bgtNorte" class="reg-bgt-input" type="text" value="$2,500,000"
             onchange="updateRegBudget('VERACRUZ NORTE',this.value)"
             onblur="updateRegBudget('VERACRUZ NORTE',this.value)"/>
         </div>
         <div class="reg-bgt-item">
           <span class="reg-bgt-lbl sur">Sur:</span>
-          <input class="reg-bgt-input" id="bgtSur" class="reg-bgt-input" type="text" value="$16,000,000"
+          <input class="reg-bgt-input" id="bgtSur" class="reg-bgt-input" type="text" value="$18,000,000"
             onchange="updateRegBudget('VERACRUZ SUR',this.value)"
             onblur="updateRegBudget('VERACRUZ SUR',this.value)"/>
         </div>
         <div class="reg-bgt-item">
           <span class="reg-bgt-lbl centro">Centro:</span>
-          <input class="reg-bgt-input" id="bgtCentro" class="reg-bgt-input" type="text" value="$6,000,000"
+          <input class="reg-bgt-input" id="bgtCentro" class="reg-bgt-input" type="text" value="$7,000,000"
             onchange="updateRegBudget('VERACRUZ CENTRO',this.value)"
             onblur="updateRegBudget('VERACRUZ CENTRO',this.value)"/>
         </div>
@@ -318,12 +318,12 @@ const MONTH_FIRST_WEEK={0:1,1:5,2:9,3:14,4:18,5:23,6:27,7:32,8:36,9:41,10:45,11:
 // Se distribuye por participación histórica acumulada
 // ═══════════════════════════════════════════════
 const BUDGET = {
-  monthly: 40000000,
+  monthly: 50000000,
   grand: 102344989,
   regions: {
-    'VERACRUZ NORTE':  18000000,
-    'VERACRUZ SUR':    16000000,
-    'VERACRUZ CENTRO':  6000000,
+    'VERACRUZ NORTE':  2500000,
+    'VERACRUZ SUR':    18000000,
+    'VERACRUZ CENTRO':  7000000,
   },
   zones: {
     'ALAMO':2541714,'ALVARADO':635081,'BOCA DEL RIO':343239,'CAFETALERA':1862912,
