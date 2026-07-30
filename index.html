@@ -1292,15 +1292,14 @@ function renderRegion(ct){
   secG.appendChild(gTtl);
   var gKpiRow=document.createElement('div');
   gKpiRow.style.cssText='display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;';
-  [{label:'W23  1–7 Jun',val:70,pct:28.9,color:'#1baf7a'},
-   {label:'W24  8–14 Jun',val:60,pct:24.8,color:'#eda100'},
-   {label:'W25  15–21 Jun',val:74,pct:30.6,color:'#2a78d6'},
-   {label:'W26  22–28 Jun',val:53,pct:21.9,color:'#e34948'},
-   {label:'W27  29Jun–5Jul',val:67,pct:27.7,color:'#8b5cf6'},
-   {label:'W28  6–12Jul',val:36,pct:14.9,color:'#06b6d4'},
-   {label:'W29  13–19Jul',val:68,pct:28.1,color:'#10b981'},
-   {label:'W30  20–26Jul',val:91,pct:37.6,color:'#f59e0b'},
-   {label:'W31  27Jul (parcial)',val:34,pct:14.0,color:'#ef4444'}].forEach(function(k){
+  var _espIni = calcGrafEspData();
+  var _espLbl = ['W23  1–7 Jun','W24  8–14 Jun','W25  15–21 Jun','W26  22–28 Jun',
+                 'W27  29Jun–5Jul','W28  6–12Jul','W29  13–19Jul','W30  20–26Jul','W31  27Jul (parcial)'];
+  var _espCol = ['#1baf7a','#eda100','#2a78d6','#e34948','#8b5cf6','#06b6d4','#10b981','#f59e0b','#ef4444'];
+  var _nTds   = WEEKLY_RAW.length;
+  _espLbl.map(function(lb,i){
+    return {label:lb, val:_espIni.totG[i], pct:Math.round(_espIni.totG[i]/_nTds*1000)/10, color:_espCol[i]};
+  }).forEach(function(k){
     var c=document.createElement('div');
     c.className='esp-kpi';c.className='esp-kpi';c.style.cssText='flex:1;min-width:95px;background:#f4f8fb;border-radius:8px;padding:8px 10px;';
     c.innerHTML='<div style="font-size:10px;color:#6a8aaa;margin-bottom:2px">'+k.label+'</div>'
@@ -1311,7 +1310,7 @@ function renderRegion(ct){
   secG.appendChild(gKpiRow);
   var gLeg=document.createElement('div');
   gLeg.style.cssText='display:flex;gap:12px;margin-bottom:8px;font-size:11px;color:#6a8aaa;flex-wrap:wrap;';
-  [{l:'Norte (82)',c:'#2a78d6'},{l:'Sur (84)',c:'#1baf7a'},{l:'Centro (76)',c:'#eda100'},{l:'% global',c:'#e34948',d:true}].forEach(function(s){
+  [{l:'Norte ('+WEEKLY_RAW.filter(function(x){return x[0]==='VERACRUZ NORTE';}).length+')',c:'#2a78d6'},{l:'Sur ('+WEEKLY_RAW.filter(function(x){return x[0]==='VERACRUZ SUR';}).length+')',c:'#1baf7a'},{l:'Centro ('+WEEKLY_RAW.filter(function(x){return x[0]==='VERACRUZ CENTRO';}).length+')',c:'#eda100'},{l:'% global',c:'#e34948',d:true}].forEach(function(s){
     var sp=document.createElement('span');sp.style.cssText='display:flex;align-items:center;gap:4px;';
     var sq=document.createElement('span');
     sq.style.cssText='width:10px;height:10px;border-radius:2px;display:inline-block;'+(s.d?'border:1px dashed '+s.c+';':'background:'+s.c+';');
@@ -1326,8 +1325,15 @@ function renderRegion(ct){
   function calcGrafEspData(){
     var semCols=[3+22,3+23,3+24,3+25,3+26,3+27,3+28,3+29,3+30];
     var regs=['VERACRUZ NORTE','VERACRUZ SUR','VERACRUZ CENTRO'];
-    var ds=[{label:'Norte',data:[0,0,0,0,0,0,0,0,0],total:82,color:'#2a78d6'},{label:'Sur',data:[0,0,0,0,0,0,0,0,0],total:84,color:'#1baf7a'},{label:'Centro',data:[0,0,0,0,0,0,0,0,0],total:76,color:'#eda100'}];
-    var totG=[0,0,0,0,0,0,0,0,0];
+    var labs=['Norte','Sur','Centro'];
+    var cols=['#2a78d6','#1baf7a','#eda100'];
+    var ds=regs.map(function(r,i){
+      return {label:labs[i],
+              data:semCols.map(function(){return 0;}),
+              total:WEEKLY_RAW.filter(function(row){return row[0]===r;}).length,
+              color:cols[i]};
+    });
+    var totG=semCols.map(function(){return 0;});
     semCols.forEach(function(col,wi){
       regs.forEach(function(r,ri){
         var cnt=WEEKLY_RAW.filter(function(row){return row[0]===r&&(row[col]||0)>=UMBRAL;}).length;
@@ -1336,18 +1342,15 @@ function renderRegion(ct){
     });
     return{ds:ds,totG:totG};
   }
-  var gDs28=[
-    {label:'Norte', data:[38,29,32,36,36,16,32,46,23],total:82,color:'#2a78d6'},
-    {label:'Sur',   data:[20,17,29,11,25,16,21,29,9],total:84,color:'#1baf7a'},
-    {label:'Centro',data:[12,14,13, 6, 6,4,15,16,2],total:76,color:'#eda100'}
-  ];
-  var gTotG=[70,60,74,53,67,36,68,91,34];
+  var _ec=calcGrafEspData();
+  var gDs28=_ec.ds;
+  var gTotG=_ec.totG;
   function actualizarGrafEsp(){
     if(!window._gChEsp) return;
     var d=calcGrafEspData();
     gDs28=d.ds; gTotG=d.totG;
     d.ds.forEach(function(ds,i){ window._gChEsp.data.datasets[i].data=ds.data; });
-    var totals=d.totG; var pcts=totals.map(function(t){return Math.round(t/242*100*10)/10;});
+    var totals=d.totG; var pcts=totals.map(function(t){return Math.round(t/WEEKLY_RAW.length*100*10)/10;});
     window._gChEsp.data.datasets[3].data=pcts;
     window._gChEsp.update();
     // Actualizar KPI cards
@@ -1366,10 +1369,10 @@ function renderRegion(ct){
     data:{
       labels:['W23 1-7Jun','W24 8-14Jun','W25 15-21Jun','W26 22-28Jun','W27 29Jun-5Jul','W28 6-12Jul','W29 13-19Jul','W30 20-26Jul','W31 27Jul-2Ago'],
       datasets:[
-        {type:'bar',label:'Norte', data:[38,29,32,36,36,16,32],backgroundColor:'#2a78d6',borderRadius:{topLeft:4,topRight:4},yAxisID:'yL',order:2},
-        {type:'bar',label:'Sur',   data:[20,17,29,11,25,16,21],backgroundColor:'#1baf7a',borderRadius:{topLeft:4,topRight:4},yAxisID:'yL',order:2},
-        {type:'bar',label:'Centro',data:[12,14,13, 6, 6,4,15],backgroundColor:'#eda100',borderRadius:{topLeft:4,topRight:4},yAxisID:'yL',order:2},
-        {type:'line',label:'% global',data:[28.9,24.8,30.6,21.9,27.7,14.9,28.1,37.6,14.0],borderColor:'#e34948',backgroundColor:'rgba(227,73,72,0.07)',borderWidth:2,borderDash:[5,4],pointBackgroundColor:'#e34948',pointRadius:5,pointHoverRadius:7,fill:false,tension:0.3,yAxisID:'yR',order:1}
+        {type:'bar',label:'Norte', data:gDs28[0].data,backgroundColor:'#2a78d6',borderRadius:{topLeft:4,topRight:4},yAxisID:'yL',order:2},
+        {type:'bar',label:'Sur',   data:gDs28[1].data,backgroundColor:'#1baf7a',borderRadius:{topLeft:4,topRight:4},yAxisID:'yL',order:2},
+        {type:'bar',label:'Centro',data:gDs28[2].data,backgroundColor:'#eda100',borderRadius:{topLeft:4,topRight:4},yAxisID:'yL',order:2},
+        {type:'line',label:'% global',data:gTotG.map(function(t){return Math.round(t/WEEKLY_RAW.length*1000)/10;}),borderColor:'#e34948',backgroundColor:'rgba(227,73,72,0.07)',borderWidth:2,borderDash:[5,4],pointBackgroundColor:'#e34948',pointRadius:5,pointHoverRadius:7,fill:false,tension:0.3,yAxisID:'yR',order:1}
       ]
     },
     options:{
@@ -1411,7 +1414,7 @@ function renderRegion(ct){
   window._rfGrafEsp=function(){
     var d=calcGrafEspData();
     d.ds.forEach(function(ds,i){ window._gChEsp.data.datasets[i].data=ds.data; });
-    var pcts=d.totG.map(function(t){return Math.round(t/242*100*10)/10;});
+    var pcts=d.totG.map(function(t){return Math.round(t/WEEKLY_RAW.length*100*10)/10;});
     window._gChEsp.data.datasets[3].data=pcts;
     window._gChEsp.update();
     var fU=UMBRAL>=1000?(UMBRAL/1000).toFixed(0)+'k':UMBRAL;
