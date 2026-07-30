@@ -1747,32 +1747,10 @@ function saveBudgets(){
 }
 
 function loadBudgets(){
-  try {
-    // 1. Intentar desde URL params: ?norte=21000000&sur=15000000&centro=7000000
-    const params = new URLSearchParams(window.location.search);
-    const pNorte  = parseInt(params.get('norte'));
-    const pSur    = parseInt(params.get('sur'));
-    const pCentro = parseInt(params.get('centro'));
-    if (pNorte && pSur && pCentro) {
-      BUDGET.regions['VERACRUZ NORTE'] = pNorte;
-      BUDGET.regions['VERACRUZ SUR']   = pSur;
-      BUDGET.regions['VERACRUZ CENTRO']= pCentro;
-      BUDGET.monthly = pNorte + pSur + pCentro;
-      applyRegBudgets();
-      return;
-    }
-    // 2. Intentar desde sessionStorage (mismo tab)
-    const saved = sessionStorage.getItem('neto_budgets') || localStorage.getItem('neto_budgets');
-    if (!saved) return;
-    const data = JSON.parse(saved);
-    if (data.monthly) {
-      BUDGET.monthly = data.monthly;
-      if (data.norte)  BUDGET.regions['VERACRUZ NORTE'] = data.norte;
-      if (data.sur)    BUDGET.regions['VERACRUZ SUR']   = data.sur;
-      if (data.centro) BUDGET.regions['VERACRUZ CENTRO']= data.centro;
-      applyRegBudgets();
-    }
-  } catch(e) {}
+  // Limpiar storage para que siempre use los valores del código
+  try { sessionStorage.removeItem('neto_budgets'); localStorage.removeItem('neto_budgets'); } catch(e){}
+  // Usar siempre los valores definidos en BUDGET (43M / Norte 21M / Sur 15M / Centro 7M)
+  applyRegBudgets();
 }
 
 function applyRegBudgets(){
