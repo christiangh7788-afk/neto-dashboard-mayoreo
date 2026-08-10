@@ -129,7 +129,7 @@ mark.ux-mark{background:#fff08a;color:#2b2b00;border-radius:4px;padding:0 2px;bo
     </div>
     <div class="header-right">
       <span class="tag">📍 3 regiones</span>
-      <span class="tag">🏪 240 tiendas · 26 zonas</span>
+      <span class="tag" id="tagTiendas">🏪 246 tiendas · 27 zonas</span>
     </div>
   </header>
 
@@ -909,7 +909,7 @@ function renderKPI(){
   cGT.innerHTML=`
     <div class="label">Gran Total — ${curMoName}</div>
     <div class="value">${fmtFull(gtMo)}</div>
-    <div class="sub">Ppto: ${fmtK(gtBudget)} · 240 tiendas</div>
+    <div class="sub">Ppto: ${fmtK(gtBudget)} · ${MONTHLY_RAW.length} tiendas</div>
     <div style="margin-top:4px;display:flex;flex-direction:column;gap:3px;">
       <div style="color:${gtVsColor};background:${gtBBg};border-radius:4px;padding:2px 6px;display:inline-block;font-size:11px;font-weight:600">
         Real: ${gtBd>=0?'+':''}${fmtFull(gtBd)} (${gtBp>=0?'+':''}${gtBp.toFixed(1)}%)
@@ -1389,7 +1389,7 @@ function renderRegion(ct){
       plugins:{
         legend:{display:false},
         tooltip:{callbacks:{label:function(ctx){
-          if(ctx.dataset.label==='% global') return ' % global: '+ctx.parsed.y+'%  ('+gTotG[ctx.dataIndex]+' de 240)';
+          if(ctx.dataset.label==='% global') return ' % global: '+ctx.parsed.y+'%  ('+gTotG[ctx.dataIndex]+' de '+WEEKLY_RAW.length+')';
           var d=gDs28.find(function(x){return x.label===ctx.dataset.label;});
           var pct=d?Math.round(ctx.parsed.y/d.total*100):'';
           return ' '+ctx.dataset.label+': '+ctx.parsed.y+' de '+(d?d.total:'-')+'  ('+pct+'%)';
@@ -1897,7 +1897,7 @@ function uxScopeText(){
   return cap(ST.zone);
 }
 function uxScopeCount(){
-  if(ST.level==='region') return '3 regiones · 26 zonas · 240 tiendas';
+  if(ST.level==='region'){ var _nz=new Set(WEEKLY_RAW.map(function(r){return r[1];})).size; return '3 regiones · '+_nz+' zonas · '+WEEKLY_RAW.length+' tiendas'; }
   if(ST.level==='zone'){
     const z=Object.keys(H[ST.region].zones).length;
     const t=Object.values(H[ST.region].zones).reduce((s,d)=>s+d.stores.length,0);
@@ -2019,6 +2019,13 @@ function selectMes(m) {
 
 
 try {
+  (function(){
+    var _t=document.getElementById('tagTiendas');
+    if(_t){
+      var _nz=new Set(WEEKLY_RAW.map(function(r){return r[1];})).size;
+      _t.textContent='🏪 '+WEEKLY_RAW.length+' tiendas · '+_nz+' zonas';
+    }
+  })();
   loadBudgets();
   render();
 } catch(e) {
