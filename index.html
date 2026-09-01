@@ -155,7 +155,7 @@ mark.ux-mark{background:#fff08a;color:#2b2b00;border-radius:4px;padding:0 2px;bo
       <div class="budget-panel">
         <div class="budget-main">
           <span class="budget-label">Presupuesto mensual</span>
-          <input id="budgetInput" type="text" inputmode="numeric" value="$40,000,000" aria-label="Presupuesto mensual total" onchange="updateBudget(this.value)" onblur="updateBudget(this.value)"/>
+          <input id="budgetInput" type="text" inputmode="numeric" value="$47,301,776" aria-label="Presupuesto mensual total" onchange="updateBudget(this.value)" onblur="updateBudget(this.value)"/>
           <span class="budget-help">Ajustable por región</span>
         </div>
         <div class="reg-budgets" aria-label="Presupuestos por región">
@@ -323,12 +323,12 @@ function getBudget(monthIdx){
   return MONTHLY_BUDGETS[monthIdx] || BUDGET;
 }
 const BUDGET = {
-  monthly: 40000000,
+  monthly: 47301776,
   grand: 102344989,
   regions: {
-    'VERACRUZ NORTE':  23000000,
-    'VERACRUZ SUR':    12000000,
-    'VERACRUZ CENTRO':  5000000,
+    'VERACRUZ NORTE':  27530529,
+    'VERACRUZ SUR':    14366247,
+    'VERACRUZ CENTRO':  5405000,
   },
   zones: {
     'ALAMO':2541714,'ALVARADO':635081,'BOCA DEL RIO':343239,'CAFETALERA':1862912,
